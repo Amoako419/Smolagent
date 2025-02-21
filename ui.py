@@ -12,9 +12,7 @@ st.title("Chatbot UI")
 if 'history' not in st.session_state:
     st.session_state.history = []
 
-# Display the conversation history
-for role, message in st.session_state.history:
-    st.markdown(f"**{role}:** {message}")
+
 
 # Input for the agent prompt
 query = st.text_input("You:")
@@ -25,3 +23,8 @@ if st.button("Send"):
         response = agent.run(query)
         st.session_state.history.append(("User", query))
         st.session_state.history.append(("Assistant", response))
+        
+        
+# Display the conversation history
+for role, message in st.session_state.history:
+    st.markdown(f"**{role}:** {message}")
