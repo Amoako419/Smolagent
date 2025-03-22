@@ -13,7 +13,7 @@ This project demonstrates the use of a `CodeAgent` powered by the `smolagents` l
 
 1. Clone the repository:
    ```bash
-   git clone <repository-url>
+   git clone https://github.com/Amoako419/Smolagent.git
    ```
 2. Install the required dependencies:
    ```bash
@@ -38,7 +38,7 @@ This project demonstrates the use of a `CodeAgent` powered by the `smolagents` l
 
 1. Run the Gradio interface script (if available):
    ```bash
-   python gradio_ui.py
+   python ui.py
    ```
 2. Open the provided URL in your browser.
 3. Interact with the agent through the web interface.
