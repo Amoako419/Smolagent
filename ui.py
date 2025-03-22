@@ -31,6 +31,9 @@ with gr.Blocks(theme=gr.themes.Soft()) as demo:
     query_input.submit(process_query, inputs=[query_input, chatbot], outputs=[query_input, chatbot])
     clear_btn.click(lambda: None, None, chatbot, queue=False)
 
+
+
 # Launch the interface
 if __name__ == "__main__":
-    demo.launch()
+    demo.launch(share=True)
+
