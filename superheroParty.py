@@ -1,3 +1,4 @@
+import gradio as gr
 from smolagents import CodeAgent, DuckDuckGoSearchTool, FinalAnswerTool, HfApiModel, Tool, tool, VisitWebpageTool
 
 @tool
@@ -60,19 +61,104 @@ class SuperheroPartyThemeTool(Tool):
         
         return themes.get(category.lower(), "Themed party idea not found. Try 'classic heroes', 'villain masquerade', or 'futuristic Gotham'.")
 
+def process_query(query, history):
+    try:
+        # Initialize the agent with all tools
+        agent = CodeAgent(
+            tools=[
+                DuckDuckGoSearchTool(), 
+                VisitWebpageTool(),
+                suggest_menu,
+                catering_service_tool,
+                SuperheroPartyThemeTool()
+            ], 
+            model=HfApiModel(),
+            max_steps=10,
+            verbosity_level=2
+        )
+        
+        # Run the agent with the query
+        response = agent.run(query)
+        
+        # Return the response and update history
+        history.append((query, response))
+        return "", history
+    except Exception as e:
+        error_message = f"Error: {str(e)}"
+        history.append((query, error_message))
+        return "", history
 
-# Alfred, the butler, preparing the menu for the party
-agent = CodeAgent(
-    tools=[
-        DuckDuckGoSearchTool(), 
-        VisitWebpageTool(),
-        suggest_menu,
-        catering_service_tool,
-        SuperheroPartyThemeTool()
-    ], 
-    model=HfApiModel(),
-    max_steps=10,
-    verbosity_level=2
-)
+# Define theme options for the dropdown
+theme_options = ["classic heroes", "villain masquerade", "futuristic Gotham"]
 
-agent.run("Give me the best playlist for a party at the Wayne's mansion. The party idea is a 'villain masquerade' theme")
+# Create a Gradio interface
+with gr.Blocks(theme=gr.themes.Soft()) as demo:
+    gr.Markdown("# Wayne Manor Party Planner")
+    gr.Markdown("Alfred's AI assistant for planning the perfect superhero-themed events")
+    
+    with gr.Row():
+        with gr.Column(scale=1):
+            gr.Markdown("### Party Settings")
+            theme_dropdown = gr.Dropdown(
+                choices=theme_options,
+                label="Party Theme",
+                value="villain masquerade"
+            )
+            
+        with gr.Column(scale=2):
+            chatbot = gr.Chatbot(height=500, label="Alfred's Responses")
+            with gr.Row():
+                query_input = gr.Textbox(
+                    placeholder="What would you like to know about planning your superhero party?", 
+                    label="Your Question", 
+                    scale=8
+                )
+                submit_btn = gr.Button("Ask Alfred", variant="primary", scale=1)
+            
+            # Example queries
+            gr.Examples(
+                examples=[
+                    ["Give me the best playlist for a party at Wayne Manor with a villain masquerade theme"],
+                    ["What food should I serve at a classic heroes themed party?"],
+                    ["Suggest decorations for a futuristic Gotham party"],
+                    ["Who are the best caterers in Gotham City?"],
+                    ["Create an invitation for a superhero costume party"]
+                ],
+                inputs=[query_input]
+            )
+            
+            # Add theme suggestion to query
+            def add_theme_to_query(query, theme):
+                if theme and not theme.lower() in query.lower():
+                    return f"{query} with a {theme} theme"
+                return query
+                
+            # Clear button to reset the conversation
+            clear_btn = gr.Button("Clear Conversation")
+    
+    # Set up event handlers
+    combined_input = submit_btn.click(
+        add_theme_to_query, 
+        inputs=[query_input, theme_dropdown], 
+        outputs=query_input
+    ).then(
+        process_query, 
+        inputs=[query_input, chatbot], 
+        outputs=[query_input, chatbot]
+    )
+    
+    query_input.submit(
+        add_theme_to_query, 
+        inputs=[query_input, theme_dropdown], 
+        outputs=query_input
+    ).then(
+        process_query, 
+        inputs=[query_input, chatbot], 
+        outputs=[query_input, chatbot]
+    )
+    
+    clear_btn.click(lambda: None, None, chatbot, queue=False)
+
+# Launch the interface
+if __name__ == "__main__":
+    demo.launch(share=True)
