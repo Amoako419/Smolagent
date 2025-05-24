@@ -1,4 +1,4 @@
-smolagents==1.16.0
+smolagent==1.16.0
 gradio==5.31.0
 langchain==0.3.25
 langchain_community==0.3.24
